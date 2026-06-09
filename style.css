@@ -974,3 +974,264 @@ select {
     font-size: 13px;
   }
 }
+/* =========================
+   FINAL MOBILE TABLE FIX
+========================= */
+
+.poker-table {
+  min-height: 720px;
+  overflow: hidden;
+}
+
+.live-seat {
+  opacity: 1;
+}
+
+.inactive-seat {
+  opacity: 0.28;
+  transform: scale(0.88);
+}
+
+.inactive-seat .seat-card-backs,
+.inactive-seat .action {
+  display: none;
+}
+
+.seat {
+  width: 118px;
+  min-height: 54px;
+  padding: 8px 10px;
+}
+
+.seat-card-backs {
+  top: -30px;
+  left: 10px;
+}
+
+.seat-card-back {
+  width: 26px;
+  height: 36px;
+}
+
+.seat-slot-0 {
+  top: 22%;
+  left: 5%;
+  transform: translateY(-50%);
+}
+
+.seat-slot-1 {
+  top: 8%;
+  left: 28%;
+  transform: translate(-50%, -50%);
+}
+
+.seat-slot-2 {
+  top: 8%;
+  right: 28%;
+  transform: translate(50%, -50%);
+}
+
+.seat-slot-3 {
+  top: 22%;
+  right: 5%;
+  transform: translateY(-50%);
+}
+
+.seat-slot-4 {
+  display: none;
+}
+
+.seat-slot-5 {
+  top: 58%;
+  left: 4%;
+  transform: translateY(-50%);
+}
+
+.hero-hole-cards {
+  position: absolute;
+  left: 50%;
+  bottom: 38px;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 8;
+  width: 220px;
+  pointer-events: none;
+}
+
+.hero-hole-cards .cards {
+  margin: 0 0 8px;
+}
+
+.hero-hole-cards .card {
+  width: 62px;
+  height: 86px;
+  font-size: 22px;
+}
+
+.hero-badge-table {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.22);
+  color: #6ee7b7;
+  border: 1px solid rgba(110, 231, 183, 0.44);
+  font-weight: 950;
+  box-shadow: 0 0 28px rgba(16, 185, 129, 0.16);
+}
+
+.hero-action-chip {
+  margin: 8px auto 0;
+  width: fit-content;
+  max-width: 190px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+  border: 1px solid rgba(110, 231, 183, 0.24);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.table-center {
+  top: 47%;
+  width: min(460px, 60%);
+}
+
+@media (max-width: 640px) {
+  .poker-table {
+    min-height: 720px;
+  }
+
+  .seat {
+    width: 94px;
+    min-height: 48px;
+    padding: 7px 8px;
+    border-radius: 14px;
+  }
+
+  .seat .pos {
+    font-size: 12px;
+    gap: 3px;
+  }
+
+  .seat .stack {
+    font-size: 12px;
+  }
+
+  .seat .action {
+    font-size: 10px;
+    max-width: 82px;
+  }
+
+  .dealer-chip,
+  .blind-chip {
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+    margin-left: 3px;
+  }
+
+  .seat-card-backs {
+    top: -24px;
+    left: 8px;
+  }
+
+  .seat-card-back {
+    width: 21px;
+    height: 30px;
+    border-radius: 6px;
+  }
+
+  .seat-slot-0 {
+    top: 24%;
+    left: 2%;
+  }
+
+  .seat-slot-1 {
+    top: 7%;
+    left: 25%;
+  }
+
+  .seat-slot-2 {
+    top: 7%;
+    right: 25%;
+  }
+
+  .seat-slot-3 {
+    top: 24%;
+    right: 2%;
+  }
+
+  .seat-slot-5 {
+    top: 60%;
+    left: 2%;
+  }
+
+  .table-center {
+    top: 45%;
+    width: 70%;
+  }
+
+  .card {
+    width: 42px;
+    height: 60px;
+    font-size: 16px;
+  }
+
+  .hero-hole-cards {
+    bottom: 34px;
+    width: 200px;
+  }
+
+  .hero-hole-cards .card {
+    width: 54px;
+    height: 76px;
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 430px) {
+  .poker-table {
+    min-height: 700px;
+  }
+
+  .seat {
+    width: 88px;
+  }
+
+  .seat-slot-0 {
+    top: 25%;
+    left: 1%;
+  }
+
+  .seat-slot-1 {
+    top: 7%;
+    left: 24%;
+  }
+
+  .seat-slot-2 {
+    top: 7%;
+    right: 24%;
+  }
+
+  .seat-slot-3 {
+    top: 25%;
+    right: 1%;
+  }
+
+  .seat-slot-5 {
+    top: 61%;
+    left: 1%;
+  }
+
+  .hero-hole-cards {
+    bottom: 30px;
+  }
+
+  .hero-hole-cards .card {
+    width: 52px;
+    height: 72px;
+  }
+}
