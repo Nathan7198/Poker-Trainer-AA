@@ -308,7 +308,11 @@ function generatePostflopSpot() {
     : rand([12, 18, 24, 32, 45]);
 
   const pot = rand([5.5, 7.5, 9, 12, 16, 24, 38]);
-  const heroPosition = rand(["BTN", "CO", "BB", "SB"]);
+
+  // Keep this cleaner and more realistic for now:
+  // Hero opens from HJ / CO / BTN, BB defends, BB acts first postflop.
+  const heroPosition = rand(["HJ", "CO", "BTN"]);
+  const villainPosition = "BB";
   const villain = rand(playerTypes);
 
   let hand;
@@ -336,12 +340,14 @@ function generatePostflopSpot() {
     idealBet = roundHalf(pot * 0.6);
     minBet = roundHalf(pot * 0.4);
     maxBet = roundHalf(pot * 0.85);
-    actionText = `You raised preflop from ${heroPosition}. One player called. Villain checks to you on the flop.`;
+
+    actionText = `You raised preflop from ${heroPosition}. Big Blind called. Big Blind checks to you on the flop.`;
     tableAction = {
-      [heroPosition]: "Hero to act",
-      BB: heroPosition === "BB" ? "Hero to act" : "Checks"
+      BB: "Checks",
+      [heroPosition]: "Hero to act"
     };
-    actionHistory = `Preflop: Hero opens from ${heroPosition} · Big Blind calls. Flop: Big Blind checks · Hero to act.`;
+    actionHistory = `Preflop: Hero opens from ${heroPosition} · BB calls. Flop: BB checks · Hero to act.`;
+
     simple = "You have a strong one-pair value hand. Bet because worse hands can call and you do not want to give free cards.";
     advanced = "As the preflop aggressor on a dry high-card board, you retain range advantage and can value bet top-pair type hands at high frequency.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -355,12 +361,14 @@ function generatePostflopSpot() {
     idealBet = roundHalf(pot * 0.75);
     minBet = roundHalf(pot * 0.55);
     maxBet = roundHalf(pot * 0.95);
-    actionText = "You raised preflop and got one caller. The board is coordinated and draw-heavy. Villain checks.";
+
+    actionText = `You raised preflop from ${heroPosition}. Big Blind called. The flop is coordinated and draw-heavy. Big Blind checks to you.`;
     tableAction = {
-      [heroPosition]: "Hero to act",
-      BB: heroPosition === "BB" ? "Hero to act" : "Checks"
+      BB: "Checks",
+      [heroPosition]: "Hero to act"
     };
-    actionHistory = `Preflop: Hero opens from ${heroPosition} · Big Blind calls. Flop: Villain checks · Hero to act.`;
+    actionHistory = `Preflop: Hero opens from ${heroPosition} · BB calls. Flop: BB checks · Hero to act.`;
+
     simple = "You should bet, but size bigger. On wet boards, small bets give draws too good a price.";
     advanced = "Connected boards shift equity more dynamically, so value hands often prefer larger sizing to charge draws and deny equity.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -371,12 +379,14 @@ function generatePostflopSpot() {
     street = "River";
     legalActions = ["Fold", "Call", "Raise"];
     correctAction = "Fold";
-    actionText = `You raised preflop, bet flop, checked turn. Villain now makes a large river bet into ${pot}bb.`;
+
+    actionText = `You raised preflop from ${heroPosition}, bet flop, checked turn. Big Blind now makes a large river bet into ${pot}bb.`;
     tableAction = {
-      [heroPosition]: "Hero to act",
-      BB: heroPosition === "BB" ? "Hero to act" : "Large river bet"
+      BB: "Large river bet",
+      [heroPosition]: "Hero to act"
     };
-    actionHistory = `Preflop: Hero opens · Big Blind calls. Flop: Hero bets · Villain calls. Turn: Check/check. River: Villain makes a large bet · Hero to act.`;
+    actionHistory = `Preflop: Hero opens from ${heroPosition} · BB calls. Flop: Hero bets · BB calls. Turn: Check/check. River: BB bets large · Hero to act.`;
+
     simple = "This river completes too many strong hands. One pair is not enough against a big river bet unless villain is bluffing too much.";
     advanced = "When front-door draws and straight regions complete, bluff-catching needs strong blockers or a specific read. Population pools often under-bluff big river bets.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -387,12 +397,14 @@ function generatePostflopSpot() {
     street = "Flop";
     legalActions = ["Check", "Bet"];
     correctAction = "Check";
-    actionText = `You raised preflop from ${heroPosition}. Big Blind called. The flop is low and connected. Villain checks.`;
+
+    actionText = `You raised preflop from ${heroPosition}. Big Blind called. The flop is low and connected. Big Blind checks.`;
     tableAction = {
-      [heroPosition]: "Hero to act",
-      BB: heroPosition === "BB" ? "Hero to act" : "Checks"
+      BB: "Checks",
+      [heroPosition]: "Hero to act"
     };
-    actionHistory = `Preflop: Hero opens from ${heroPosition} · Big Blind calls. Flop: Big Blind checks · Hero to act.`;
+    actionHistory = `Preflop: Hero opens from ${heroPosition} · BB calls. Flop: BB checks · Hero to act.`;
+
     simple = "This board connects with the Big Blind more than you. Checking back is often better than forcing a bad bluff.";
     advanced = "Low connected textures reduce the preflop raiser's range advantage. The caller has more two pair, sets, pair-plus-draws, and straights.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -403,12 +415,14 @@ function generatePostflopSpot() {
     street = rand(["Flop", "Turn"]);
     legalActions = ["Fold", "Call", "Raise"];
     correctAction = "Call";
-    actionText = "You face a medium-sized bet on a dynamic board. Your hand has showdown value but is not strong enough to raise.";
+
+    actionText = `You raised preflop from ${heroPosition}. Big Blind called. On the ${street.toLowerCase()}, Big Blind makes a medium-sized bet.`;
     tableAction = {
-      [heroPosition]: "Hero to act",
-      BB: heroPosition === "BB" ? "Hero to act" : "Bets"
+      BB: "Bets",
+      [heroPosition]: "Hero to act"
     };
-    actionHistory = `Preflop: Hero opens · Big Blind calls. ${street}: Villain bets medium size · Hero to act.`;
+    actionHistory = `Preflop: Hero opens from ${heroPosition} · BB calls. ${street}: BB bets medium size · Hero to act.`;
+
     simple = "Calling keeps worse hands and bluffs in. Raising would isolate you against stronger hands too often.";
     advanced = "Medium-strength hands often prefer call lines because they realise equity without overplaying against stronger continuing ranges.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -420,6 +434,7 @@ function generatePostflopSpot() {
       "postflop",
       mode,
       heroPosition,
+      villainPosition,
       stack,
       pot,
       hand,
@@ -433,7 +448,9 @@ function generatePostflopSpot() {
     title: `${street} Decision`,
     mode,
     heroPosition,
+    villainPosition,
     villainType: villain.name,
+    playersInHand: [heroPosition, villainPosition],
     stack,
     pot,
     hand,
