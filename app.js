@@ -3,7 +3,7 @@ const STORAGE_KEY = "premiumPokerTrainer_v1";
 const DEFAULT_STATE = {
   mode: "cash",
   difficulty: "beginner",
-  section: "trainer",
+  section: "preflop",
   current: null,
   shownIds: [],
   stats: {
@@ -24,9 +24,41 @@ const DEFAULT_STATE = {
   }
 };
 
-let app = JSON.parse(localStorage.getItem(STORAGE_KEY)) || structuredClone(DEFAULT_STATE);
+function cloneDefaultState() {
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
 
-const suits = ["♠", "♥", "♦", "♣"];
+function loadAppState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!saved) return cloneDefaultState();
+
+    const merged = {
+      ...cloneDefaultState(),
+      ...saved,
+      stats: {
+        cash: {
+          ...cloneDefaultState().stats.cash,
+          ...(saved.stats?.cash || {})
+        },
+        tournament: {
+          ...cloneDefaultState().stats.tournament,
+          ...(saved.stats?.tournament || {})
+        }
+      }
+    };
+
+    if (!merged.section || merged.section === "trainer") {
+      merged.section = "preflop";
+    }
+
+    return merged;
+  } catch {
+    return cloneDefaultState();
+  }
+}
+
+let app = loadAppState();
 
 const handPools = {
   premium: ["A♠ A♦", "K♠ K♦", "Q♠ Q♦", "A♠ K♠", "A♣ K♦"],
@@ -100,7 +132,6 @@ const playerTypes = [
 ];
 
 const positionOrderPreflop = ["UTG", "HJ", "CO", "BTN", "SB", "BB"];
-const positionOrderPostflop = ["SB", "BB", "UTG", "HJ", "CO", "BTN"];
 
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(app));
@@ -131,11 +162,19 @@ function makeId(parts) {
 }
 
 function splitCards(cardString) {
-  return cardString.split(" ");
+  return cardString.trim().split(/\s+/);
 }
 
 function cardClass(card) {
   return card.includes("♥") || card.includes("♦") ? "card red" : "card";
+}
+
+function roundHalf(value) {
+  return Math.round(value * 2) / 2;
+}
+
+function modeLabel() {
+  return app.mode === "cash" ? "Cash Game" : "Tournament";
 }
 
 function pickLeakFocus() {
@@ -160,21 +199,24 @@ function generatePreflopSpot() {
   let heroPosition = rand(["UTG", "HJ", "CO", "BTN", "SB", "BB"]);
   let hand;
   let correct;
-  let options = ["Fold", "Call", "Raise", "3-bet", "All-in"];
+  const options = ["Fold", "Call", "Raise", "3-bet", "All-in"];
   let spot;
   let tableAction = {};
   let simple;
   let advanced;
   let exploit;
   let concept;
+  let actionHistory;
 
   const villain = rand(playerTypes);
 
   if (mode === "tournament" && stack <= 15 && leak === "Missing profitable jams") {
-    heroPosition = rand(["BTN", "SB", "CO"]);
+    heroPosition = rand(["CO", "BTN", "SB"]);
     hand = rand([...handPools.strong, ...handPools.medium]);
     correct = "All-in";
     spot = `${modeLabel()} — ${stack}bb effective. Action folds to you in the ${heroPosition}.`;
+    tableAction = { [heroPosition]: "Hero to act" };
+    actionHistory = `Preflop: Folds to Hero in ${heroPosition}. Hero has ${stack}bb.`;
     simple = `At ${stack}bb, ${hand} is strong enough to shove. You win the blinds when everyone folds and still have good equity when called.`;
     advanced = "Short-stack tournament poker rewards fold equity. Hands with strong high-card value perform well as jams because they deny equity and avoid awkward postflop SPR spots.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -183,7 +225,12 @@ function generatePreflopSpot() {
     hand = rand([...handPools.medium, ...handPools.speculative]);
     correct = "Call";
     spot = `${modeLabel()} — ${stack}bb effective. Button opens to 2.5bb. You are in the Big Blind.`;
-    tableAction = { BTN: "Raises 2.5bb", SB: "Folds", BB: "Hero to act" };
+    tableAction = {
+      BTN: "Raises 2.5bb",
+      SB: "Folds",
+      BB: "Hero to act"
+    };
+    actionHistory = "Preflop: UTG folds · HJ folds · CO folds · BTN raises 2.5bb · SB folds · BB to act.";
     simple = `${hand} is good enough to defend against a Button open. You are getting a price and the Button has a wide range.`;
     advanced = "The Big Blind closes the action and has already invested chips. Against late-position opens, suited and connected hands realise enough equity to call.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -193,6 +240,7 @@ function generatePreflopSpot() {
     correct = "Raise";
     spot = `${modeLabel()} — ${stack}bb effective. Folds to you in the ${heroPosition}.`;
     tableAction = { [heroPosition]: "Hero to act" };
+    actionHistory = `Preflop: Action folds to Hero in ${heroPosition}.`;
     simple = `${hand} should usually be opened from ${heroPosition}. You can win the blinds or play with initiative.`;
     advanced = "Late position allows wider opening because fewer players remain and you often have positional advantage postflop.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -206,16 +254,13 @@ function generatePreflopSpot() {
     correct = strongEnough ? "Raise" : "Fold";
     spot = `${modeLabel()} — ${stack}bb effective. Folds to you in ${heroPosition}.`;
     tableAction = { [heroPosition]: "Hero to act" };
+    actionHistory = `Preflop: Action folds to Hero in ${heroPosition}.`;
     simple = strongEnough
       ? `${hand} is strong enough to open from early position.`
       : `${hand} is too loose from early position. You will be dominated too often.`;
     advanced = "Early-position ranges must be tighter because more players are left to act behind you.";
     exploit = `${villain.name}: ${villain.exploit}`;
     concept = "Position discipline";
-  }
-
-  if (!Object.keys(tableAction).length) {
-    tableAction = { [heroPosition]: "Hero to act" };
   }
 
   return {
@@ -226,7 +271,8 @@ function generatePreflopSpot() {
       stack,
       hand,
       correct,
-      spot
+      spot,
+      villain.name
     ]),
     type: "preflop",
     title: "Preflop Decision",
@@ -239,6 +285,7 @@ function generatePreflopSpot() {
     board: "",
     spot,
     actionText: spot,
+    actionHistory,
     tableAction,
     legalActions: options,
     correctAction: correct,
@@ -278,6 +325,7 @@ function generatePostflopSpot() {
   let concept;
   let actionText;
   let tableAction = {};
+  let actionHistory;
 
   if (leak === "Missing value bets") {
     hand = rand(["A♠ K♠", "K♣ Q♣", "A♦ Q♦", "Q♠ J♠"]);
@@ -289,7 +337,11 @@ function generatePostflopSpot() {
     minBet = roundHalf(pot * 0.4);
     maxBet = roundHalf(pot * 0.85);
     actionText = `You raised preflop from ${heroPosition}. One player called. Villain checks to you on the flop.`;
-    tableAction = { [heroPosition]: "Hero to act", BB: "Checks" };
+    tableAction = {
+      [heroPosition]: "Hero to act",
+      BB: heroPosition === "BB" ? "Hero to act" : "Checks"
+    };
+    actionHistory = `Preflop: Hero opens from ${heroPosition} · Big Blind calls. Flop: Big Blind checks · Hero to act.`;
     simple = "You have a strong one-pair value hand. Bet because worse hands can call and you do not want to give free cards.";
     advanced = "As the preflop aggressor on a dry high-card board, you retain range advantage and can value bet top-pair type hands at high frequency.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -303,8 +355,12 @@ function generatePostflopSpot() {
     idealBet = roundHalf(pot * 0.75);
     minBet = roundHalf(pot * 0.55);
     maxBet = roundHalf(pot * 0.95);
-    actionText = `You raised preflop and got one caller. The board is coordinated and draw-heavy. Villain checks.`;
-    tableAction = { [heroPosition]: "Hero to act", BB: "Checks" };
+    actionText = "You raised preflop and got one caller. The board is coordinated and draw-heavy. Villain checks.";
+    tableAction = {
+      [heroPosition]: "Hero to act",
+      BB: heroPosition === "BB" ? "Hero to act" : "Checks"
+    };
+    actionHistory = `Preflop: Hero opens from ${heroPosition} · Big Blind calls. Flop: Villain checks · Hero to act.`;
     simple = "You should bet, but size bigger. On wet boards, small bets give draws too good a price.";
     advanced = "Connected boards shift equity more dynamically, so value hands often prefer larger sizing to charge draws and deny equity.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -316,7 +372,11 @@ function generatePostflopSpot() {
     legalActions = ["Fold", "Call", "Raise"];
     correctAction = "Fold";
     actionText = `You raised preflop, bet flop, checked turn. Villain now makes a large river bet into ${pot}bb.`;
-    tableAction = { [heroPosition]: "Hero to act", BB: "Big river bet" };
+    tableAction = {
+      [heroPosition]: "Hero to act",
+      BB: heroPosition === "BB" ? "Hero to act" : "Large river bet"
+    };
+    actionHistory = `Preflop: Hero opens · Big Blind calls. Flop: Hero bets · Villain calls. Turn: Check/check. River: Villain makes a large bet · Hero to act.`;
     simple = "This river completes too many strong hands. One pair is not enough against a big river bet unless villain is bluffing too much.";
     advanced = "When front-door draws and straight regions complete, bluff-catching needs strong blockers or a specific read. Population pools often under-bluff big river bets.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -328,7 +388,11 @@ function generatePostflopSpot() {
     legalActions = ["Check", "Bet"];
     correctAction = "Check";
     actionText = `You raised preflop from ${heroPosition}. Big Blind called. The flop is low and connected. Villain checks.`;
-    tableAction = { [heroPosition]: "Hero to act", BB: "Checks" };
+    tableAction = {
+      [heroPosition]: "Hero to act",
+      BB: heroPosition === "BB" ? "Hero to act" : "Checks"
+    };
+    actionHistory = `Preflop: Hero opens from ${heroPosition} · Big Blind calls. Flop: Big Blind checks · Hero to act.`;
     simple = "This board connects with the Big Blind more than you. Checking back is often better than forcing a bad bluff.";
     advanced = "Low connected textures reduce the preflop raiser's range advantage. The caller has more two pair, sets, pair-plus-draws, and straights.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -339,8 +403,12 @@ function generatePostflopSpot() {
     street = rand(["Flop", "Turn"]);
     legalActions = ["Fold", "Call", "Raise"];
     correctAction = "Call";
-    actionText = `You face a medium-sized bet on a dynamic board. Your hand has showdown value but is not strong enough to raise.`;
-    tableAction = { [heroPosition]: "Hero to act", BB: "Bets" };
+    actionText = "You face a medium-sized bet on a dynamic board. Your hand has showdown value but is not strong enough to raise.";
+    tableAction = {
+      [heroPosition]: "Hero to act",
+      BB: heroPosition === "BB" ? "Hero to act" : "Bets"
+    };
+    actionHistory = `Preflop: Hero opens · Big Blind calls. ${street}: Villain bets medium size · Hero to act.`;
     simple = "Calling keeps worse hands and bluffs in. Raising would isolate you against stronger hands too often.";
     advanced = "Medium-strength hands often prefer call lines because they realise equity without overplaying against stronger continuing ranges.";
     exploit = `${villain.name}: ${villain.exploit}`;
@@ -358,7 +426,8 @@ function generatePostflopSpot() {
       board,
       street,
       correctAction,
-      concept
+      concept,
+      villain.name
     ]),
     type: "postflop",
     title: `${street} Decision`,
@@ -371,6 +440,7 @@ function generatePostflopSpot() {
     board,
     spot: actionText,
     actionText,
+    actionHistory,
     tableAction,
     legalActions,
     correctAction,
@@ -383,10 +453,6 @@ function generatePostflopSpot() {
     advanced,
     exploit
   };
-}
-
-function roundHalf(value) {
-  return Math.round(value * 2) / 2;
 }
 
 function generateUniqueQuestion() {
@@ -403,6 +469,7 @@ function generateUniqueQuestion() {
   }
 
   app.shownIds = [];
+
   const q = app.section === "preflop"
     ? generatePreflopSpot()
     : generatePostflopSpot();
@@ -539,13 +606,16 @@ function resetProgress() {
   const confirmed = confirm("Reset all progress and question history?");
   if (!confirmed) return;
 
-  app = structuredClone(DEFAULT_STATE);
+  app = cloneDefaultState();
   save();
   newQuestion();
 }
 
-function modeLabel() {
-  return app.mode === "cash" ? "Cash Game" : "Tournament";
+function renderCards(cardString) {
+  if (!cardString) return "";
+  return splitCards(cardString).map(card => {
+    return `<div class="${cardClass(card)}">${card}</div>`;
+  }).join("");
 }
 
 function renderSeats(q) {
@@ -558,23 +628,41 @@ function renderSeats(q) {
     BB: q.stack
   };
 
+  const blindLabels = {
+    SB: "0.5bb",
+    BB: "1bb"
+  };
+
   return positionOrderPreflop.map(pos => {
     const isHero = pos === q.heroPosition;
     const action = q.tableAction[pos] || "";
+    const dealer = pos === "BTN" ? `<span class="dealer-chip">D</span>` : "";
+    const blind = blindLabels[pos] ? `<span class="blind-chip">${blindLabels[pos]}</span>` : "";
+
     return `
       <div class="seat seat-${pos} ${isHero ? "hero-seat" : ""}">
-        <div class="pos">${isHero ? "Hero" : "Villain"} · ${pos}</div>
+        ${
+          !isHero
+            ? `
+              <div class="seat-card-backs">
+                <div class="seat-card-back"></div>
+                <div class="seat-card-back"></div>
+              </div>
+            `
+            : ""
+        }
+
+        <div class="pos">
+          ${isHero ? "Hero" : pos}
+          ${dealer}
+          ${blind}
+        </div>
+
         <div class="stack">${stacks[pos]}bb</div>
+
         ${action ? `<div class="action">${action}</div>` : ""}
       </div>
     `;
-  }).join("");
-}
-
-function renderCards(cardString) {
-  if (!cardString) return "";
-  return splitCards(cardString).map(card => {
-    return `<div class="${cardClass(card)}">${card}</div>`;
   }).join("");
 }
 
@@ -594,14 +682,17 @@ function renderStats() {
         <strong>${s.hands}</strong>
         <span>Hands played</span>
       </div>
+
       <div class="stat-card">
         <strong>${acc}%</strong>
         <span>Accuracy</span>
       </div>
+
       <div class="stat-card">
         <strong>${s.streak}</strong>
         <span>Current streak</span>
       </div>
+
       <div class="stat-card">
         <strong>${s.best}</strong>
         <span>Best streak</span>
@@ -685,11 +776,18 @@ function render() {
                     `
                     : ""
                 }
+              </div>
 
-                <div class="hero-hand-label">Your hand</div>
+              <div class="hero-hole-cards">
                 <div class="cards">${renderCards(q.hand)}</div>
+                <div class="hero-badge-table">Hero · ${q.heroPosition}</div>
               </div>
             </div>
+          </div>
+
+          <div class="hand-history">
+            <strong>Action history</strong>
+            <p>${q.actionHistory || q.actionText}</p>
           </div>
 
           <div class="action-box">
