@@ -311,6 +311,7 @@ function generatePostflopSpot() {
 
   // Keep this cleaner and more realistic for now:
   // Hero opens from HJ / CO / BTN, BB defends, BB acts first postflop.
+  const TABLE_CLOCKWISE = ["SB", "BB", "UTG", "HJ", "CO", "BTN"];
   const heroPosition = rand(["HJ", "CO", "BTN"]);
   const villainPosition = "BB";
   const villain = rand(playerTypes);
