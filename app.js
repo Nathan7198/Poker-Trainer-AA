@@ -1,4 +1,4 @@
-const STORAGE_KEY = "premiumPokerTrainer_v1";
+const STORAGE_KEY = "premiumPokerTrainer_v2";
 
 const DEFAULT_STATE = {
   mode: "cash",
