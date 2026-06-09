@@ -635,7 +635,13 @@ function renderCards(cardString) {
     return `<div class="${cardClass(card)}">${card}</div>`;
   }).join("");
 }
+function getSeatSlot(position, heroPosition) {
+  const heroTargetSlot = 4; // bottom-centre
+  const positionIndex = TABLE_CLOCKWISE.indexOf(position);
+  const heroIndex = TABLE_CLOCKWISE.indexOf(heroPosition);
 
+  return (positionIndex - heroIndex + heroTargetSlot + TABLE_CLOCKWISE.length) % TABLE_CLOCKWISE.length;
+}
 function renderSeats(q) {
   const stacks = {
     UTG: q.stack,
@@ -645,6 +651,49 @@ function renderSeats(q) {
     SB: q.stack,
     BB: q.stack
   };
+
+  const blindLabels = {
+    SB: "0.5bb",
+    BB: "1bb"
+  };
+
+  const livePlayers = new Set(q.playersInHand || positionOrderPreflop);
+
+  return positionOrderPreflop
+    .filter(pos => pos !== q.heroPosition)
+    .map(pos => {
+      const isLive = livePlayers.has(pos);
+      const action = isLive ? q.tableAction[pos] || "" : "";
+      const dealer = pos === "BTN" ? `<span class="dealer-chip">D</span>` : "";
+      const blind = blindLabels[pos] ? `<span class="blind-chip">${blindLabels[pos]}</span>` : "";
+      const seatSlot = getSeatSlot(pos, q.heroPosition);
+
+      return `
+        <div class="seat seat-slot-${seatSlot} ${isLive ? "live-seat" : "inactive-seat"}">
+          ${
+            isLive
+              ? `
+                <div class="seat-card-backs">
+                  <div class="seat-card-back"></div>
+                  <div class="seat-card-back"></div>
+                </div>
+              `
+              : ""
+          }
+
+          <div class="pos">
+            ${pos}
+            ${dealer}
+            ${blind}
+          </div>
+
+          <div class="stack">${stacks[pos]}bb</div>
+
+          ${action ? `<div class="action">${action}</div>` : ""}
+        </div>
+      `;
+    }).join("");
+}
 
   const blindLabels = {
     SB: "0.5bb",
@@ -796,10 +845,15 @@ function render() {
                 }
               </div>
 
-              <div class="hero-hole-cards">
-                <div class="cards">${renderCards(q.hand)}</div>
-                <div class="hero-badge-table">Hero · ${q.heroPosition}</div>
-              </div>
+             <div class="hero-hole-cards">
+  <div class="cards hero-cards">${renderCards(q.hand)}</div>
+  <div class="hero-badge-table">Hero · ${q.heroPosition} · ${q.stack}bb</div>
+  ${
+    q.tableAction[q.heroPosition]
+      ? `<div class="hero-action-chip">${q.tableAction[q.heroPosition]}</div>`
+      : ""
+  }
+</div>
             </div>
           </div>
 
