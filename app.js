@@ -694,45 +694,6 @@ function renderSeats(q) {
       `;
     }).join("");
 }
-
-  const blindLabels = {
-    SB: "0.5bb",
-    BB: "1bb"
-  };
-
-  return positionOrderPreflop.map(pos => {
-    const isHero = pos === q.heroPosition;
-    const action = q.tableAction[pos] || "";
-    const dealer = pos === "BTN" ? `<span class="dealer-chip">D</span>` : "";
-    const blind = blindLabels[pos] ? `<span class="blind-chip">${blindLabels[pos]}</span>` : "";
-
-    return `
-      <div class="seat seat-${pos} ${isHero ? "hero-seat" : ""}">
-        ${
-          !isHero
-            ? `
-              <div class="seat-card-backs">
-                <div class="seat-card-back"></div>
-                <div class="seat-card-back"></div>
-              </div>
-            `
-            : ""
-        }
-
-        <div class="pos">
-          ${isHero ? "Hero" : pos}
-          ${dealer}
-          ${blind}
-        </div>
-
-        <div class="stack">${stacks[pos]}bb</div>
-
-        ${action ? `<div class="action">${action}</div>` : ""}
-      </div>
-    `;
-  }).join("");
-}
-
 function renderStats() {
   const statsEl = document.getElementById("statsPanel");
   if (!statsEl) return;
