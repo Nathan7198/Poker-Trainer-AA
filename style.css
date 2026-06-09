@@ -312,40 +312,48 @@ select {
 }
 
 /* 6-max app style positions */
-.seat-UTG {
-  top: 18%;
-  right: 7%;
+.live-seat {
+  opacity: 1;
+}
+
+.inactive-seat {
+  opacity: 0.34;
+}
+
+.seat-slot-0 {
+  top: 12%;
+  left: 12%;
+  transform: translate(-10%, -10%);
+}
+
+.seat-slot-1 {
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.seat-slot-2 {
+  top: 12%;
+  right: 12%;
+  transform: translate(10%, -10%);
+}
+
+.seat-slot-3 {
+  top: 46%;
+  right: 4%;
   transform: translateY(-50%);
 }
 
-.seat-HJ {
-  bottom: 12%;
-  left: 17%;
-  transform: translate(-50%, 50%);
+.seat-slot-4 {
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.seat-CO {
-  top: 58%;
-  left: 3%;
+.seat-slot-5 {
+  top: 46%;
+  left: 4%;
   transform: translateY(-50%);
-}
-
-.seat-BTN {
-  top: 32%;
-  left: 6%;
-  transform: translateY(-50%);
-}
-
-.seat-SB {
-  top: 9%;
-  left: 31%;
-  transform: translate(-50%, -50%);
-}
-
-.seat-BB {
-  top: 9%;
-  right: 31%;
-  transform: translate(50%, -50%);
 }
 
 .table-center {
@@ -688,35 +696,101 @@ select {
     font-size: 12px;
   }
 
-  .seat-UTG {
-    top: 24%;
-    right: 2%;
+  @media (max-width: 900px) {
+  .seat-slot-0 {
+    top: 12%;
+    left: 9%;
   }
 
-  .seat-HJ {
-    bottom: 11%;
-    left: 24%;
+  .seat-slot-1 {
+    top: 5%;
+    left: 50%;
   }
 
-  .seat-CO {
-    top: 62%;
-    left: 2%;
+  .seat-slot-2 {
+    top: 12%;
+    right: 9%;
   }
 
-  .seat-BTN {
-    top: 36%;
-    left: 2%;
+  .seat-slot-3 {
+    top: 44%;
+    right: 1%;
   }
 
-  .seat-SB {
-    top: 8%;
-    left: 29%;
+  .seat-slot-4 {
+    bottom: 8%;
+    left: 50%;
   }
 
-  .seat-BB {
-    top: 8%;
-    right: 29%;
+  .seat-slot-5 {
+    top: 44%;
+    left: 1%;
   }
+}
+
+@media (max-width: 640px) {
+  .seat-slot-0 {
+    top: 13%;
+    left: 6%;
+  }
+
+  .seat-slot-1 {
+    top: 5%;
+    left: 50%;
+  }
+
+  .seat-slot-2 {
+    top: 13%;
+    right: 6%;
+  }
+
+  .seat-slot-3 {
+    top: 43%;
+    right: -2px;
+  }
+
+  .seat-slot-4 {
+    bottom: 7%;
+    left: 50%;
+  }
+
+  .seat-slot-5 {
+    top: 43%;
+    left: -2px;
+  }
+}
+
+@media (max-width: 430px) {
+  .seat-slot-0 {
+    top: 14%;
+    left: 4%;
+  }
+
+  .seat-slot-1 {
+    top: 5%;
+    left: 50%;
+  }
+
+  .seat-slot-2 {
+    top: 14%;
+    right: 4%;
+  }
+
+  .seat-slot-3 {
+    top: 42%;
+    right: -6px;
+  }
+
+  .seat-slot-4 {
+    bottom: 7%;
+    left: 50%;
+  }
+
+  .seat-slot-5 {
+    top: 42%;
+    left: -6px;
+  }
+}
 
   .table-center {
     width: 52%;
